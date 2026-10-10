@@ -1,0 +1,94 @@
+# 5 品牌 × 3 case = 15 真实 version 字符串对照集
+#
+# 用途：
+# - internal/classify/classifier_test.go 表驱动（5 品牌 × 3 = 15 case 断言 100%）；
+# - test/integration/dockertest_test.go PG/Kingbase 容器真实握手品牌识别；
+# - test/integration/llm_stub_test.go LLM 输入侧 fixture；
+# - 信息科手测：对照 contracts.yaml 申报的 version_pattern 与本表实际观测。
+#
+# 字段约定：
+# - brand: VendorSignature 字典主键（与 vendor_signatures.example.yaml 一致）
+# - port_banner: DB 端口握手真实观测字符串（含 PG 兼容族 + DM banner + Oracle TNS）
+# - jdbc_url:   驱动目录抽取到的实际 JDBC URL
+# - expected_classifier_status: "match" | "mismatch" | "unknown"
+# - notes: 异常 case 的对照解释（PG 兼容模式 / 复合指纹 / 伪装识别）
+brands:
+  # === KingbaseES（人大金仓） ===
+  - brand: kingbase
+    cases:
+      - port_banner: "KingbaseES V008R006C0010 on x86_64"
+        jdbc_url: "jdbc:kingbase8://10.0.1.21:54321/SAMPLE_DB"
+        expected_classifier_status: "match"
+        notes: "原生 KingbaseES 标识；不含 PG 兼容 token"
+      - port_banner: "KingbaseES V008R006C10B0010 (PostgreSQL 13.6 compatible)"
+        jdbc_url: "jdbc:kingbase8://10.0.1.22:54321/SAMPLE_DB"
+        expected_classifier_status: "match"
+        notes: "KingbaseES + PG 兼容模式（复合指纹，须不被 PG-only 误判为 mismatch）"
+      - port_banner: "KingbaseES V007R006C0030 build 0916"
+        jdbc_url: "jdbc:kingbase8://10.0.1.23:54321/SAMPLE_DB"
+        expected_classifier_status: "match"
+        notes: "KingbaseES V7 老版本"
+
+  # === DM8（达梦） ===
+  - brand: dm8
+    cases:
+      - port_banner: "DM: Database Server V8.1.0"
+        jdbc_url: "jdbc:dm://10.0.2.11:5236/SAMPLE"
+        expected_classifier_status: "match"
+        notes: "DM 标准 banner 前缀 'DM:'"
+      - port_banner: "DAMENG V8.1.2-Build(12345)-ENT"
+        jdbc_url: "jdbc:dm://10.0.2.12:5236/SAMPLE"
+        expected_classifier_status: "match"
+        notes: "DM 关键字 'DAMENG' 命中"
+      - port_banner: "DM8 Database Server V8.2.0"
+        jdbc_url: "jdbc:dm://10.0.2.13:5236/SAMPLE"
+        expected_classifier_status: "match"
+        notes: "DM8 + '8.2.0' 大版本"
+
+  # === openGauss（华为） ===
+  - brand: opengauss
+    cases:
+      - port_banner: "openGauss 5.0.0 (build bde7a14e) compiled at 2024-03-15"
+        jdbc_url: "jdbc:opengauss://10.0.3.11:5432/SAMPLE"
+        expected_classifier_status: "match"
+        notes: "openGauss 5.0 LTS"
+      - port_banner: "openGauss 3.0.0"
+        jdbc_url: "jdbc:opengauss://10.0.3.12:5432/SAMPLE"
+        expected_classifier_status: "match"
+        notes: "openGauss 3.0 早期 LTS"
+      - port_banner: "openGauss 5.0.0 compatible with PostgreSQL 9.2.4"
+        jdbc_url: "jdbc:opengauss://10.0.3.13:5432/SAMPLE"
+        expected_classifier_status: "match"
+        notes: "openGauss PG 兼容模式；含 'postgres' 子串但不误判为 PG"
+
+  # === IvorySQL（瀚高 / IvorySQL 社区） ===
+  - brand: ivorysql
+    cases:
+      - port_banner: "IvorySQL 1.4 on x86_64-pc-linux-gnu"
+        jdbc_url: "jdbc:ivorysql://10.0.4.11:5432/SAMPLE"
+        expected_classifier_status: "match"
+        notes: "IvorySQL 1.4 社区版"
+      - port_banner: "IvorySQL 1.2"
+        jdbc_url: "jdbc:ivorysql://10.0.4.12:5432/SAMPLE"
+        expected_classifier_status: "match"
+        notes: "IvorySQL 1.2 老版本"
+      - port_banner: "HighGo Software - IvorySQL 1.4 (based on PostgreSQL 14)"
+        jdbc_url: "jdbc:ivorysql://10.0.4.13:5432/SAMPLE"
+        expected_classifier_status: "match"
+        notes: "瀚高 IvorySQL 含 HighGo 前缀"
+
+  # === pg-compat（PostgreSQL 兼容族兜底） ===
+  - brand: pg-compat
+    cases:
+      - port_banner: "PostgreSQL 14.10 (Debian 14.10-1.pgdg120+1)"
+        jdbc_url: "jdbc:postgresql://10.0.5.11:5432/SAMPLE"
+        expected_classifier_status: "match"
+        notes: "PG 14.10 Debian 打包；典型混杂 case（在 DM 期望下应识别 mismatch）"
+      - port_banner: "PostgreSQL 13.6 on x86_64-pc-linux-gnu"
+        jdbc_url: "jdbc:postgresql://10.0.5.12:5432/SAMPLE"
+        expected_classifier_status: "match"
+        notes: "PG 13.6 通用；伪装 Kingbase 时应被排除"
+      - port_banner: "PostgreSQL 11.2"
+        jdbc_url: "jdbc:postgresql://10.0.5.13:5432/SAMPLE"
+        expected_classifier_status: "match"
+        notes: "PG 11.2 老版本"

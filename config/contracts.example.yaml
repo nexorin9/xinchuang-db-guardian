@@ -1,0 +1,163 @@
+# 信创数据库合同白名单（信息科编辑；权威声明）
+# 12 个声明信创数据库：HIS / EMR / LIS / PACS / 医保前置 / 药房 / 检验 / 影像归档 /
+#                       HIS 备份 / 移动护理 / OA 门户 / 第三方理赔
+#
+# 字段约束（internal/config/contract.go.ValidateContracts）：
+# - system_id 全院唯一；
+# - host 为 v4 / v6 IP；域名暂不支持（信息科登记 IP 即可）；
+# - port ∈ [1, 65535]；
+# - version_pattern 须能 regexp.Compile；
+# - vendor 不空；
+# - contract_id / event_id_prefix 不空；
+# - allow_drift_sha256 为允许 jar sha 集合（不在集合 → slog.Warn 'driver_sha_unexpected'），
+#   信息科补 jar sha 后才能上架；
+# - jdbc_driver_dirs：驱动 jar 所在的目录（fsnotify 监听）；
+# - scan_interval：探测周期（默认 10m，system 可覆写；空字符串表示缺省）。
+#
+# 注意：本 yaml 文件为示例，**不**连真实生产库；测试用 dockertest 拉镜像。
+
+declared:
+  - system_id: his-core
+    vendor: kingbase
+    version_pattern: "V008R006C10.*"
+    allow_drift_sha256:
+      - "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"  # 示例 sha256，请用真实值替换
+    contract_id: HT-2024-HIS-CORE
+    host: 10.0.1.21
+    port: 54321
+    scan_interval: 10m
+    jdbc_driver_dirs:
+      - /opt/jdbc/kingbase
+    event_id_prefix: EVT-HIS
+
+  - system_id: emr
+    vendor: dm8
+    version_pattern: "DM Database Server V8\\.1\\..*"
+    allow_drift_sha256: []
+    contract_id: HT-2024-EMR
+    host: 10.0.1.22
+    port: 5236
+    scan_interval: 10m
+    jdbc_driver_dirs:
+      - /opt/jdbc/dm
+    event_id_prefix: EVT-EMR
+
+  - system_id: lis
+    vendor: openGauss
+    version_pattern: "openGauss.*5\\.0\\..*"
+    allow_drift_sha256: []
+    contract_id: HT-2024-LIS
+    host: 10.0.1.23
+    port: 15432
+    scan_interval: 10m
+    jdbc_driver_dirs:
+      - /opt/jdbc/opengauss
+    event_id_prefix: EVT-LIS
+
+  - system_id: pacs
+    vendor: IvorySQL
+    version_pattern: "IvorySQL.*1\\.4.*"
+    allow_drift_sha256: []
+    contract_id: HT-2024-PACS
+    host: 10.0.1.24
+    port: 19600
+    scan_interval: 10m
+    jdbc_driver_dirs:
+      - /opt/jdbc/ivorysql
+    event_id_prefix: EVT-PACS
+
+  - system_id: yb-proxy
+    vendor: pg-compat
+    version_pattern: "PostgreSQL.*14\\..*"
+    allow_drift_sha256: []
+    contract_id: HT-2024-YB-PROXY
+    host: 10.0.2.30
+    port: 5432
+    scan_interval: 10m
+    jdbc_driver_dirs:
+      - /opt/jdbc/pg
+    event_id_prefix: EVT-YB
+
+  - system_id: pharmacy
+    vendor: kingbase
+    version_pattern: "V008R006.*"
+    allow_drift_sha256: []
+    contract_id: HT-2024-PHARM
+    host: 10.0.1.25
+    port: 54322
+    scan_interval: 10m
+    jdbc_driver_dirs:
+      - /opt/jdbc/kingbase
+    event_id_prefix: EVT-PHARM
+
+  - system_id: lab-lis
+    vendor: openGauss
+    version_pattern: "openGauss.*3\\.0\\..*"
+    allow_drift_sha256: []
+    contract_id: HT-2024-LAB
+    host: 10.0.1.26
+    port: 15433
+    scan_interval: 10m
+    jdbc_driver_dirs:
+      - /opt/jdbc/opengauss
+    event_id_prefix: EVT-LAB
+
+  - system_id: pacs-archive
+    vendor: dm8
+    version_pattern: "DM Database Server V8\\.1\\..*"
+    allow_drift_sha256: []
+    contract_id: HT-2024-PACS-ARC
+    host: 10.0.1.27
+    port: 5237
+    scan_interval: 10m
+    jdbc_driver_dirs:
+      - /opt/jdbc/dm
+    event_id_prefix: EVT-PACS-ARC
+
+  - system_id: his-bak
+    vendor: pg-compat
+    version_pattern: "PostgreSQL.*14\\..*"
+    allow_drift_sha256: []
+    contract_id: HT-2024-HIS-BAK
+    host: 10.0.3.40
+    port: 5433
+    scan_interval: 30m
+    jdbc_driver_dirs:
+      - /opt/jdbc/pg
+    event_id_prefix: EVT-HIS-BAK
+
+  - system_id: mobile-nurse
+    vendor: IvorySQL
+    version_pattern: "IvorySQL.*1\\.2.*"
+    allow_drift_sha256: []
+    contract_id: HT-2024-MOBILE
+    host: 10.0.1.28
+    port: 19601
+    scan_interval: 10m
+    jdbc_driver_dirs:
+      - /opt/jdbc/ivorysql
+    event_id_prefix: EVT-MOBILE
+
+  - system_id: oa-portal
+    vendor: openGauss
+    version_pattern: "openGauss.*3\\.0\\..*"
+    allow_drift_sha256: []
+    contract_id: HT-2024-OA
+    host: 10.0.1.29
+    port: 15434
+    scan_interval: 30m
+    jdbc_driver_dirs:
+      - /opt/jdbc/opengauss
+    event_id_prefix: EVT-OA
+
+  - system_id: third-party-claim
+    vendor: kingbase
+    version_pattern: "V008R006.*"
+    allow_drift_sha256: []
+    contract_id: HT-2024-3RD-CLAIM
+    host: 10.0.4.50
+    port: 54324
+    scan_interval: 15m
+    jdbc_driver_dirs:
+      - /opt/jdbc/kingbase
+    event_id_prefix: EVT-3RD

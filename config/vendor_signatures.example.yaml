@@ -1,0 +1,65 @@
+# 信创数据库品牌指纹字典（信息科编辑；事实指纹 → 合同声明做对照）
+# 5 品牌：kingbase / dm8 / openGauss / IvorySQL / pg-compat
+#
+# 每个品牌的字段约束（internal/config/vendor.go.ValidateVendorSignatures）：
+# - version_regex ≥ 1 条；每条必须能 regexp.Compile；
+# - jdbc_url_pattern ≥ 1 条；
+# - signature_tokens ≥ 1 条（用于 LLM 入参上下文，不含端口原文）；
+# - known_jar_sha256 允许空（信息科上架前补 sha）。
+#
+# 注意：
+# - 厂商切换（DM → 国产 / 国产 → DM）后须更新本文件；
+# - 复合指纹（如 KingbaseES V008R006C10B0010 包含 PostgreSQL 13.6 子串）
+#   在 classify(prefix + token) 联合判定下仍能识别 match；
+# - PG 14.10 (Debian) banner 在 DM8 期望下 → mismatch（依赖 classify 的混杂排除）。
+
+brands:
+  - brand: kingbase
+    version_regex:
+      - "(?i)KingbaseES\\s+V\\d+R\\d+C\\d+"
+    jdbc_url_pattern:
+      - "jdbc:kingbase8://[^:]+:[0-9]+/[^?]+"
+    signature_tokens:
+      - "KingbaseES"
+      - "V008"
+    known_jar_sha256: []  # 由信息科登记驱动 jar 后补 sha
+
+  - brand: dm8
+    version_regex:
+      - "(?i)DM\\s+Database\\s+Server\\s+V\\d"
+      - "(?i)DAMENG\\s+V\\d"
+    jdbc_url_pattern:
+      - "jdbc:dm://[^:]+:[0-9]+"
+    signature_tokens:
+      - "DM"
+      - "DAMENG"
+    known_jar_sha256: []
+
+  - brand: openGauss
+    version_regex:
+      - "(?i)openGauss\\s+\\d+\\.\\d+\\.\\d+"
+    jdbc_url_pattern:
+      - "jdbc:opengauss://[^:]+:[0-9]+/[^?]+"
+    signature_tokens:
+      - "openGauss"
+      - "GaussDB"
+    known_jar_sha256: []
+
+  - brand: IvorySQL
+    version_regex:
+      - "(?i)IvorySQL\\s+\\d+\\.\\d+"
+    jdbc_url_pattern:
+      - "jdbc:ivorysql://[^:]+:[0-9]+/[^?]+"
+    signature_tokens:
+      - "IvorySQL"
+      - "瀚高"
+    known_jar_sha256: []
+
+  - brand: pg-compat
+    version_regex:
+      - "PostgreSQL\\s+\\d+\\.\\d+(\\.\\d+)?"
+    jdbc_url_pattern:
+      - "jdbc:postgresql://[^:]+:[0-9]+/[^?]+"
+    signature_tokens:
+      - "PostgreSQL"
+    known_jar_sha256: []

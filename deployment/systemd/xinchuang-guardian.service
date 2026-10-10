@@ -1,0 +1,48 @@
+[Unit]
+Description=信创数据库合规漂移守护（xinchuang-db-guardian）
+# 在网络可用之后启动（守护上线后需要打开 LLM webhook / SMTP 出站）
+After=network-online.target
+Wants=network-online.target
+Documentation=https://github.com/xinchuang/db-guardian
+
+[Service]
+Type=notify
+# 二进制路径：建议安装到 /usr/local/bin/xinchuang-guardian
+ExecStart=/usr/local/bin/xinchuang-guardian start --config /etc/xinchuang-guardian/contracts.yaml
+ExecReload=/bin/kill -HUP $MAINPID
+# 凭据与外部集成变量集中放在 /etc/xinchuang-guardian/.env（必须 0640 + root:xcg）
+EnvironmentFile=/etc/xinchuang-guardian/.env
+# pidfile 由二进制自身管理（XINCHUANG_PIDFILE 默认 /var/run/xc-guardian.pid）
+PIDFile=/var/run/xc-guardian.pid
+# 守护退出后 5 秒自动拉起（飞检前不轻易停摆）
+Restart=always
+RestartSec=5
+# 资源防护：单实例 12 库约 4MB；预留 256MB 足够
+MemoryMax=256M
+TasksMax=64
+# 安全选项：守护进程只需要访问 contracts.yaml + audit.jsonl + LLM 网关
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+# 仅允许访问配置目录 + pidfile + 日志目录；其它文件系统只读
+ReadWritePaths=/var/log/xinchuang-guardian /var/run /etc/xinchuang-guardian
+# 限制出站协议族（仅 IPv4；如部署在 IPv6 双栈环境移除 -4）
+AddressFamily=ipv4
+# 用户/组：安装时创建系统用户 xcg（useradd -r -s /usr/sbin/nologin xcg）
+User=xcg
+Group=xcg
+# 日志走 journald（XINCHUANG_LOG_LEVEL=info / warn / error）
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=xinchuang-guardian
+# 优雅关闭：收到 SIGTERM 后二进制自动 graceful_shutdown + 删 pidfile
+KillSignal=SIGTERM
+KillMode=mixed
+TimeoutStopSec=15
+# 看门狗
+WatchdogSec=60
+
+[Install]
+WantedBy=multi-user.target

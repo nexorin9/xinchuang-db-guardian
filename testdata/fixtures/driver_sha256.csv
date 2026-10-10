@@ -1,0 +1,11 @@
+brand,sha256,jar_filename,registered_at,registered_by,notes
+kingbase,cca29d0a3784c6c51c5b1013a8989bb5d8fc30f197505390fed1ff0e89a205ba,kingbase8-8.6.0.2503.jar,2026-01-15T08:30:00Z,信息科-张主任,人大金仓 V8R6 C3 官方驱动
+kingbase,90cf731640281426f3c122abd4d6934a1c03cfe5a269feda24b070d684497bc3,kingbase8-8.6.0.2503-pg.jar,2026-01-15T08:30:00Z,信息科-张主任,人大金仓 PG 兼容模式驱动
+dm8,90de7ae70275d8e73847cfd16a3f5ac93894d808676b96b9215d575ffb922f62,Dm8JdbcDriver18-8.1.2.jar,2026-01-15T08:35:00Z,信息科-张主任,达梦 DM8 V8.1.2 官方 JDBC 驱动
+dm8,10bd7007a6da38f87132762cf63d666edd2d2d0a152f0a120e269afe7bf15f9a,Dm8JdbcDriver18-8.2.0.jar,2026-01-15T08:35:00Z,信息科-张主任,达梦 DM8 V8.2.0 官方 JDBC 驱动
+opengauss,98927f264a48575d6336a6557fda70e0a98795fed7a60ac59003cb289a5be05b,opengauss-jdbc-5.0.0.jar,2026-01-15T08:40:00Z,信息科-张主任,openGauss 5.0 LTS 官方驱动
+opengauss,c6f7f329585a457f63f12887077f32c63f54dcf3aebb629680ae68c1b5a8c18c,opengauss-jdbc-5.0.0-pg.jar,2026-01-15T08:40:00Z,信息科-张主任,openGauss PG 兼容模式驱动
+ivorysql,1fcb42731555a3f7ce2c28403e1a93e462200ce135d03a5b8ad75b384793b5c0,ivorysql-jdbc-1.4.jar,2026-01-15T08:45:00Z,信息科-张主任,IvorySQL 1.4 社区驱动
+ivorysql,b75b77577597d3969e956027af0e1f80b8504449edec722ec6ba81c72cfce7b9,ivorysql-jdbc-1.4-pg.jar,2026-01-15T08:45:00Z,信息科-张主任,IvorySQL 1.4 PG 兼容模式驱动
+pg-compat,6f410eb4e93a2aa3f05049a7eff1bc4f0d388edab68b48a08a627ed26182c2b9,postgresql-42.7.1.jar,2026-01-15T08:50:00Z,信息科-张主任,PG 官方 JDBC 42.7.1（兜底品牌 pg-compat）
+pg-compat,a2d05f78fed2f45619850afc44b6f0cd82e42dc3fb655b7b06ed8d6686a78d52,postgresql-42.7.3.jar,2026-01-15T08:50:00Z,信息科-张主任,PG 官方 JDBC 42.7.3（兜底品牌 pg-compat）

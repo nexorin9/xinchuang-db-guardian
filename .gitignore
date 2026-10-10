@@ -1,0 +1,53 @@
+# 运行时数据与日志
+.env
+.env.*
+!.env.example
+logs/
+tmp/
+*.log
+*.tmp
+*.temp
+*.bak
+data/
+
+# Go 构建产物
+/bin/
+/dist/
+/build/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Go 测试缓存
+coverage/
+coverage.html
+*.cover
+*.test
+*.out
+
+# 缓存目录
+.cache/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.next/
+.nuxt/
+node_modules/
+
+# round 元数据（不应进入项目仓库）
+score.json
+
+# 锁文件（保留 go.sum）
+# go.sum 保留
+# 不排除 qrcode.jpg（关注区块需要）
+!qrcode.jpg
+
+# 编辑器与系统
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

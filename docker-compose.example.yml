@@ -1,0 +1,74 @@
+# 信创数据库合规漂移守护 — docker-compose 编排示例（PoC）
+#
+# 启动方式（须先把 .env 与 contracts.yaml 编辑好）：
+#   cp .env.example .env && vim .env             # 填入 WECHAT_WEBHOOK_URL / SMTP_PASSWORD / LLM_API_KEY
+#   cp config/contracts.example.yaml config/contracts.yaml && vim config/contracts.yaml
+#   cp config/vendor_signatures.example.yaml config/vendor_signatures.yaml
+#   docker compose -f docker-compose.example.yml up -d
+#
+# 查看日志：
+#   docker compose -f docker-compose.example.yml logs -f
+#
+# 触发一次飞检前证据导出（外部 CLI，调用宿主机已编译的二进制）：
+#   docker compose -f docker-compose.example.yml exec xinchuang-guardian \
+#     xinchuang-guardian export-evidence --last 30d --out /var/log/xinchuang-guardian/evidence-$(date +%Y%m%d).zip
+#   docker compose -f docker-compose.example.yml exec xinchuang-guardian \
+#     xinchuang-guardian audit verify-chain --file /var/log/xinchuang-guardian/audit.jsonl
+
+services:
+  xinchuang-guardian:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        VERSION: "1.0.0-poc"
+        GIT_COMMIT: "compose-poc"
+    image: xinchuang-db-guardian:1.0.0-poc
+    container_name: xinchuang-guardian
+    # 守护是事件驱动 + 出站（webhook / SMTP / LLM），无入站端口暴露
+    # ports: []
+    # 仅读挂载：合同白名单 + 凭据
+    volumes:
+      # 合同白名单（信息科编辑的权威 source-of-truth）
+      - ./config/contracts.yaml:/etc/xinchuang-guardian/contracts.yaml:ro
+      - ./config/vendor_signatures.yaml:/etc/xinchuang-guardian/vendor_signatures.yaml:ro
+      # 凭据文件（必须 0640 权限；本仓库仅提交 .env.example）
+      - ./.env:/etc/xinchuang-guardian/.env:ro
+      # 审计链 + 日志 + 证据包输出（持久化到宿主机）
+      - ./logs:/var/log/xinchuang-guardian
+      # pidfile 共享目录
+      - ./run:/var/run
+    # 默认 start 子命令；可被 command 覆盖为 verify-only / audit verify-chain 等
+    command: ["start", "--config", "/etc/xinchuang-guardian/contracts.yaml"]
+    # 优雅关闭：compose down 给 30s 让 graceful_shutdown 跑完
+    stop_grace_period: 30s
+    # 失败自动重启（与 systemd Restart=always 等价）
+    restart: unless-stopped
+    # 资源限制（与 systemd MemoryMax=256M 一致）
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+        reservations:
+          memory: 64M
+    # 健康检查（覆盖 Dockerfile 默认）
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/xinchuang-guardian", "--version"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    # 安全选项（compose 等价于 systemd ProtectSystem=strict）
+    security_opt:
+      - no-new-privileges:true
+    read_only: false   # 需要写 logs/ + run/ + pidfile
+    tmpfs:
+      - /tmp:size=64M
+    # 日志驱动（journald / json-file 二选一）
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=xinchuang-guardian"
